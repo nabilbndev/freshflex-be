@@ -1,5 +1,5 @@
 import bcrypt from 'bcryptjs';
-import { generateTokenAndSetCookie } from '../lib/utils/generateToken.js';
+import { generateToken } from '../lib/utils/generateToken.js';
 import User from "../models/user.model.js";
 export const signup = async (req, res) => {
   try {
@@ -9,7 +9,7 @@ export const signup = async (req, res) => {
       return res.status(400).json({ error: "Invalid email format" });
     }
 
-    const existingUser = await User.findOne({email});
+    const existingUser = await User.findOne({ email });
     if (existingUser) {
       return res.status(400).json({ error: "Email is already in use" })
     }
@@ -24,13 +24,14 @@ export const signup = async (req, res) => {
       password: hashedPassword
     })
     if (newUser) {
-      generateTokenAndSetCookie(newUser._id, res);
+      const token = generateToken(newUser._id);
       await newUser.save();
       res.status(201).json({
         _id: newUser._id,
         name: newUser.name,
         username: newUser.username,
         email: newUser.email,
+        token: token
       })
     } else {
       res.status(400).json({ error: "Invalid user data" })
@@ -48,26 +49,17 @@ export const login = async (req, res) => {
     if (!user || !isPasswordCorrect) {
       return res.status(400).json({ error: "Invalid username or password" });
     }
-    generateTokenAndSetCookie(user._id, res);
+    const token = generateToken(user._id);
     res.status(200).json({
       _id: user._id,
       name: user.name,
       username: user.username,
       email: user.email,
+      token: token
     })
   } catch (error) {
     console.log("Error in login controller", error.message);
     res.status(400).json({ error: "Internal Server Error" })
-  }
-}
-
-export const logout = async (req, res) => {
-  try {
-    res.cookie("jwt", "", { maxAge: 0 });
-    res.status(200).json({ message: "Logged out successfully" });
-  } catch (error) {
-    console.log("Error in logout controller", error.message);
-    res.status(500).json({ error: "Internal Server Error" });
   }
 }
 
