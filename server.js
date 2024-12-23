@@ -2,7 +2,7 @@ import cookieParser from "cookie-parser";
 import { configDotenv } from "dotenv";
 import express from "express";
 import connectMongoDB from "./db/connectMongoDB.js";
-import authRoutes from "./routes/auth.routes.js";
+import authRoutes from "./routes/auth.route.js";
 configDotenv();
 const app = express();
 app.use(express.json())
